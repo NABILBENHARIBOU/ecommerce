@@ -1,0 +1,21 @@
+# Node
+node_modules/
+dist/
+.env
+package-lock.json
+
+# Java / Maven
+target/
+*.log
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Uploads (images locales)
+uploads/
+
+# OS
+.DS_Store
+Thumbs.db
