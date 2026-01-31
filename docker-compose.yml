@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-ecommerce_db}
+      MYSQL_USER: ${MYSQL_USER:-ecom}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-ecompass}
+    volumes:
+      - dbdata:/var/lib/mysql
+    networks:
+      - ecommerce-net
+
+  backend:
+    build: ./backend
+    image: ghcr.io/${{ github.repository_owner }}/ecommerce-backend:latest
+    depends_on:
+      - db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/${MYSQL_DATABASE:-ecommerce_db}?useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER:-ecom}
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD:-ecompass}
+      JWT_SECRET: ${JWT_SECRET:-change_me}
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./uploads:/app/uploads
+    networks:
+      - ecommerce-net
+
+  frontend:
+    build: ./frontend
+    image: ghcr.io/${{ github.repository_owner }}/ecommerce-frontend:latest
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+    networks:
+      - ecommerce-net
+
+volumes:
+  dbdata:
+
+networks:
+  ecommerce-net:
+    driver: bridge

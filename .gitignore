@@ -16,6 +16,9 @@ target/
 # Uploads (images locales)
 uploads/
 
+# Deploy keys and scripts (do NOT commit private keys)
+.deploy/
+
 # OS
 .DS_Store
 Thumbs.db
