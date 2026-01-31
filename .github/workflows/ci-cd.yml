@@ -60,10 +60,10 @@ jobs:
             # Pull latest images
             docker pull ghcr.io/${{ github.repository_owner }}/ecommerce-backend:latest
             docker pull ghcr.io/${{ github.repository_owner }}/ecommerce-frontend:latest
-            # Copy docker-compose.yml from repo (you can also keep it on server)
-            cat > docker-compose.yml << 'EOF'
-${{ toJson(fromJson(env.DOCKER_COMPOSE || '')) }}
-EOF
+            # Copy docker-compose.yml from repo (or use DOCKER_COMPOSE secret if set)
+            if [ -n "$DOCKER_COMPOSE" ]; then
+              echo "$DOCKER_COMPOSE" > docker-compose.yml
+            fi
             docker-compose pull
             docker-compose up -d --remove-orphans
 
