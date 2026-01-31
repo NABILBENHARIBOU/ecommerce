@@ -1,53 +1,85 @@
 import { TrendingUp, ShoppingCart, Package, Users} from "lucide-react";
+import { useEffect, useState } from 'react'
 import StatCard from "./StatCard";
 import SalesChart from "./SalesChart";
 import TopProducts from "./TopProducts";
 import RecentOrders from "./RecentOrders";
+import api from '../../services/api'
 
 export default function AdminHome() {
+    const [productsCount, setProductsCount] = useState(0)
+    const [ordersCount, setOrdersCount] = useState(0)
+    const [clientsCount, setClientsCount] = useState(0)
+    const [salesTotal, setSalesTotal] = useState(0)
+
+    useEffect(() => {
+        const fetchStats = async () => {
+            try {
+                const [products, orders, users] = await Promise.all([
+                    api.getAllProducts(),
+                    api.getAllOrders(),
+                    api.getAllUsers(),
+                ])
+
+                setProductsCount(products ? products.length : 0)
+                setOrdersCount(orders ? orders.length : 0)
+                setClientsCount(users ? users.length : 0)
+
+                const total = (orders || []).reduce((s, o) => {
+                    const t = parseFloat(o.total || o.montant || 0)
+                    return s + (isNaN(t) ? 0 : t)
+                }, 0)
+                setSalesTotal(total)
+            } catch (err) {
+                console.error('Erreur en récupérant les stats admin:', err)
+            }
+        }
+        fetchStats()
+    }, [])
+
     return (
         <div className="space-y-8 p-3">
 
             <div>
                 <h1 className="text-3xl font-bold text-gray-900">Tableau de bord</h1>
-                <p className="text-gray-600 mt-2">Bienvenue! Voici un apercu de votre activite </p>
+                <p className="text-gray-600 mt-2">Bienvenue! Voici un aperçu de votre activité</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <StatCard 
                     title="Ventes totales"
-                    value="1000F CFA"
-                    change={12.5}
+                    value={`${salesTotal.toFixed(2)} €`}
+                    change={0}
                     icon={TrendingUp}
                     color="emerald"
-                    subtitle="Ce mois"
+                    subtitle="Total des ventes"
                 />
 
                 <StatCard
                     title="Commandes"
-                    value="1,245"
-                    change={8.2}
+                    value={ordersCount.toLocaleString()}
+                    change={0}
                     icon={ShoppingCart}
                     color="blue"
-                    subtitle="Total cette année"
+                    subtitle="Total de commandes"
                 />
 
                 <StatCard
                     title="Produits"
-                    value="482"
-                    change={-2.3}
+                    value={productsCount.toLocaleString()}
+                    change={0}
                     icon={Package}
                     color="amber"
-                    subtitle="En stock"
+                    subtitle="Nombre total"
                 />
 
                 <StatCard
                     title="Clients"
-                    value="3,892"
-                    change={15.8}
+                    value={clientsCount.toLocaleString()}
+                    change={0}
                     icon={Users}
                     color="purple"
-                     subtitle="Utilisateurs actifs"
+                     subtitle="Utilisateurs"
                 />
             </div>
 

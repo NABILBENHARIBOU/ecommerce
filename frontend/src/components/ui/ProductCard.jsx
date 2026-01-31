@@ -40,7 +40,8 @@ export default function ProductCard({ product, onEdit, onDelete, isAdminView = f
       id: id,
       name: title,
       price: price,
-      image_url: image
+      image_url: image,
+      stock: stock
     });
     console.log("Produit ajouter")
   }

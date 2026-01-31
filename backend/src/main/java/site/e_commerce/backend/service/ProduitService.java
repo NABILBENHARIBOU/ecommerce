@@ -25,6 +25,12 @@ public class ProduitService {
     public List<Produit> obtenirTousLesProduits() {
         try {
             List<Produit> produits = produitRepository.findAll();
+            // Fallback: si une image est manquante, renvoyer une image par défaut
+            produits.forEach(p -> {
+                if (p.getImageUrl() == null || p.getImageUrl().trim().isEmpty()) {
+                    p.setImageUrl("/uploads/1763368669820-iaas.jpg");
+                }
+            });
             return produits;
         } catch (Exception e) {
             System.err.println("❌ Erreur dans ProduitService.obtenirTousLesProduits():");

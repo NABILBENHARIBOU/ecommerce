@@ -17,7 +17,12 @@ export function CartProvider({ children }) {
   function addToCart(product) {
     setItems(prev => {
       const existing = prev.find(i => i.id === product.id)
+      const maxStock = product.stock ?? existing?.stock ?? Infinity
       if (existing) {
+        if (existing.quantity >= maxStock) {
+          // already at max stock, do nothing
+          return prev
+        }
         return prev.map(i => i.id === product.id ? { ...i, quantity: i.quantity + 1 } : i)
       }
       return [...prev, { 
@@ -25,7 +30,8 @@ export function CartProvider({ children }) {
         name: product.name, 
         price: product.price, 
         image_url: product.image_url, 
-        quantity: 1 
+        quantity: 1,
+        stock: Number.isFinite(maxStock) ? maxStock : null
       }]
     })
   }
@@ -33,9 +39,12 @@ export function CartProvider({ children }) {
   function updateQuantity(id, newQuantity) {
     if (newQuantity < 1) return
     setItems(prev => 
-      prev.map(item => 
-        item.id === id ? { ...item, quantity: newQuantity } : item
-      )
+      prev.map(item => {
+        if (item.id !== id) return item
+        const max = item.stock ?? Infinity
+        const qty = Math.min(newQuantity, max)
+        return { ...item, quantity: qty }
+      })
     )
   }
 

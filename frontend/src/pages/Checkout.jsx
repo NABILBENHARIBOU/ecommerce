@@ -30,6 +30,7 @@ export default function Checkout() {
   const userId = user?.id_utilisateur || user?.idUtilisateur
 
   const total = items.reduce((sum, item) => sum + item.quantity * item.price, 0)
+  const placeholder = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect fill="%23e2e8f0" width="400" height="300"/%3E%3Ctext x="50%25" y="50%25" font-family="Arial" font-size="16" fill="%23999" text-anchor="middle" dy=".3em"%3ENon disponible%3C/text%3E%3C/svg%3E' 
 
   useEffect(() => {
     if (!user) {
@@ -404,17 +405,23 @@ export default function Checkout() {
             <h2 className="text-xl font-semibold text-gray-900 mb-4 pb-3 border-b-2 border-gray-200">Résumé de votre commande</h2>
             
             <div className="mb-6 max-h-64 overflow-y-auto">
-              {items.map((item, index) => (
-                <div key={`item-${item.id}-${index}`} className="flex justify-between items-start mb-4 pb-4 border-b border-gray-200 last:border-0">
-                  <div className="flex-1">
-                    <p className="font-medium text-gray-900">{item.name}</p>
-                    <p className="text-sm text-gray-600">Quantité: {item.quantity}</p>
+              {items.map((item, index) => {
+                const image = item.image_url && item.image_url.startsWith('/') ? `http://localhost:8080${item.image_url}` : (item.image_url || placeholder)
+                return (
+                  <div key={`item-${item.id}-${index}`} className="flex justify-between items-start mb-4 pb-4 border-b border-gray-200 last:border-0">
+                    <div className="flex items-center gap-3 flex-1">
+                      <img src={image} alt={item.name} className="w-16 h-12 object-cover rounded-md" />
+                      <div>
+                        <p className="font-medium text-gray-900">{item.name}</p>
+                        <p className="text-sm text-gray-600">Quantité: {item.quantity}</p>
+                      </div>
+                    </div>
+                    <p className="font-semibold text-gray-900">
+                      {(item.quantity * item.price).toFixed(2)} €
+                    </p>
                   </div>
-                  <p className="font-semibold text-gray-900">
-                    {(item.quantity * item.price).toFixed(2)} €
-                  </p>
-                </div>
-              ))}
+                )
+              })}
             </div>
             
             <div className="space-y-3 mb-6 pb-6 border-b-2 border-gray-200">

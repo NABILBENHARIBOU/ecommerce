@@ -184,6 +184,10 @@ export default function OrderConfirmation() {
             <Package size={18} />
             Voir mes commandes
           </button>
+          <button onClick={() => window.print()} className="flex-1 flex items-center justify-center gap-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-900 px-6 py-3 rounded-lg font-semibold transition">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M6 2a2 2 0 00-2 2v3h12V4a2 2 0 00-2-2H6zM4 9v5a2 2 0 002 2h8a2 2 0 002-2V9H4zm4 2h4v3H8v-3z" /></svg>
+            Imprimer la facture
+          </button>
           <button onClick={() => navigate('/')} className="flex-1 flex items-center justify-center gap-2 bg-gray-300 hover:bg-gray-400 text-gray-900 px-6 py-3 rounded-lg font-semibold transition">
             <Home size={18} />
             Continuer les achats
