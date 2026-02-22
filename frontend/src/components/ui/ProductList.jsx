@@ -25,7 +25,7 @@ export default function ProductList() {
   if (error) return <div style={{color:'red'}}>{error}</div>
 
   return (
-    <section style={{display:'grid',gridTemplateColumns:'repeat(3,minmax(220px,1fr))',gap:16}}>
+    <section className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 px-2">
       {products.map(p => (
         <ProductCard key={p.idProduit || p.id} product={p} />
       ))}

@@ -134,10 +134,10 @@ CREATE TABLE Panier (
 );
 
 CREATE TABLE Panier_Produit (
+    id INT AUTO_INCREMENT PRIMARY KEY,
     id_panier INT,
     id_produit INT,
     quantite INT DEFAULT 1,
-    PRIMARY KEY (id_panier, id_produit),
     FOREIGN KEY (id_panier) REFERENCES Panier(id_panier) ON DELETE CASCADE,
     FOREIGN KEY (id_produit) REFERENCES Produit(id_produit) ON DELETE CASCADE
 );

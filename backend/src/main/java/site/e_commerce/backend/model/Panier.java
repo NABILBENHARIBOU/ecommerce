@@ -20,13 +20,8 @@ public class Panier {
     @JoinColumn(name = "id_utilisateur", referencedColumnName = "id_utilisateur", unique = true)
     private Utilisateur utilisateur;
     
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-        name = "Panier_Produit",
-        joinColumns = @JoinColumn(name = "id_panier"),
-        inverseJoinColumns = @JoinColumn(name = "id_produit")
-    )
-    private List<Produit> produits;
+    @OneToMany(mappedBy = "panier", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<LignePanier> lignesPanier;
     
     // Constructors
     public Panier() {
@@ -51,8 +46,8 @@ public class Panier {
         return utilisateur;
     }
     
-    public List<Produit> getProduits() {
-        return produits;
+    public List<LignePanier> getLignesPanier() {
+        return lignesPanier;
     }
     
     // Setters
@@ -68,7 +63,24 @@ public class Panier {
         this.utilisateur = utilisateur;
     }
     
+    public void setLignesPanier(List<LignePanier> lignesPanier) {
+        this.lignesPanier = lignesPanier;
+    }
+
+
+    public List<Produit> getProduits() {
+        if (lignesPanier == null) return java.util.Collections.emptyList();
+        return lignesPanier.stream()
+            .map(LignePanier::getProduit)
+            .toList();
+    }
+
+    // setProduits n'est pas utile pour la logique métier, mais on évite l'exception
     public void setProduits(List<Produit> produits) {
-        this.produits = produits;
+        // Remplace toutes les lignes du panier par une ligne par produit (quantité 1)
+        this.lignesPanier = produits == null ? java.util.Collections.emptyList() :
+            produits.stream()
+                .map(p -> new LignePanier(this, p, 1))
+                .toList();
     }
 }

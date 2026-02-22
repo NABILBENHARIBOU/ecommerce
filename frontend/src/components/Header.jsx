@@ -1,6 +1,6 @@
 import { ShoppingCart, User, Menu, Search, X, LogOut, ChevronDown, Settings, LayoutDashboard } from 'lucide-react';
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../store/AuthContext';
 import { useCart } from '../store/CartContext';
 
@@ -31,31 +31,67 @@ export default function Header() {
     return "??"; // Si aucune info n'est disponible
   };
 
+  const location = useLocation();
+
+  // Helper to determine if a path is active (for mobile links)
+  const isActive = (path) => location.pathname === path;
+
   return (
     <header className="sticky top-0 z-50 bg-white shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           
           {/* LOGO : Remplacé <a> par <Link> */}
-          <Link to="/" className="flex items-center gap-2">
-            <ShoppingCart className="w-8 h-8 text-gray-900" />
+          <Link to="/" className="flex items-center gap-2 transition-transform duration-200 hover:scale-105">
+            <ShoppingCart className="w-8 h-8 text-gray-900 transition-transform duration-200 group-hover:rotate-12" />
             <span className="text-2xl font-bold text-gray-900">NAKADouka</span>
           </Link>
 
-          {/* NAVIGATION DESKTOP : Remplacé <a> par <Link> */}
+          {/* NAVIGATION DESKTOP : NavLink for active highlighting */}
           <nav className="hidden md:flex items-center gap-8">
-            <Link to="/" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
+            <NavLink
+              to="/"
+              className={({ isActive }) =>
+                `font-medium transition duration-200 hover:scale-110 ${isActive ? 'text-blue-600' : 'text-gray-700 hover:text-blue-600'}`
+              }
+              end
+            >
               Accueil
-            </Link>
-            <Link to="/products" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
+            </NavLink>
+            <NavLink
+              to="/products"
+              className={({ isActive }) =>
+                `font-medium transition duration-200 hover:scale-110 ${isActive ? 'text-blue-600' : 'text-gray-700 hover:text-blue-600'}`
+              }
+            >
               Produits
-            </Link>
-            <Link to="/categories" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
+            </NavLink>
+            <NavLink
+              to="/categories"
+              className={({ isActive }) =>
+                `font-medium transition duration-200 hover:scale-110 ${isActive ? 'text-blue-600' : 'text-gray-700 hover:text-blue-600'}`
+              }
+            >
               Catégories
-            </Link>
-            <Link to="/contact" className="text-gray-700 hover:text-blue-600 transition-colors font-medium">
+            </NavLink>
+            {isAuthenticated && (
+              <NavLink
+                to="/myorders"
+                className={({ isActive }) =>
+                  `font-medium transition duration-200 hover:scale-110 ${isActive ? 'text-blue-600' : 'text-gray-700 hover:text-blue-600'}`
+                }
+              >
+                Commandes
+              </NavLink>
+            )}
+            <NavLink
+              to="/contact"
+              className={({ isActive }) =>
+                `font-medium transition duration-200 hover:scale-110 ${isActive ? 'text-blue-600' : 'text-gray-700 hover:text-blue-600'}`
+              }
+            >
               Contact
-            </Link>
+            </NavLink>
           </nav>
 
           <div className="flex items-center gap-4">
@@ -93,9 +129,9 @@ export default function Header() {
               <div className="flex items-center gap-3 relative">
                 <button
                   onClick={() => setIsProfileOpen(!isProfileOpen)}
-                  className="flex items-center space-x-2 p-1 5 rounded-lg hover:bg-gray-100 transition-colors"
+                  className="flex items-center space-x-2 p-1.5 rounded-lg hover:bg-gray-100 transition-all duration-200 focus:ring-2 focus:ring-blue-400 hover:scale-105"
                 >
-                  <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-semibold shadow-md shrink-0">
+                  <div className="h-10 w-10 rounded-full bg-linear-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-semibold shadow-md shrink-0">
                     <span className="text-sm">
                       {getInitials()}
                     </span>
@@ -147,7 +183,7 @@ export default function Header() {
                         logout();
                         navigate('/');
                       }}
-                      className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                      className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-all duration-200 hover:scale-105"
                     >
                       <LogOut className="h-4 w-4 mr-3" />
                       Déconnexion
@@ -173,24 +209,52 @@ export default function Header() {
           </div>
         </div>
 
-        {/* MENU MOBILE : Remplacé <a> par <Link> */}
+        {/* MENU MOBILE amélioré */}
         {isMenuOpen && (
-          <nav className="md:hidden py-4 border-t">
-            <div className="flex flex-col gap-3">
-              <Link to="/" onClick={() => setIsMenuOpen(false)} className="text-gray-700 hover:text-blue-600 font-medium py-2">
+          <>
+            {/* Fond sombre semi-transparent */}
+            <div className="fixed inset-0 bg-black bg-opacity-40 z-40" onClick={() => setIsMenuOpen(false)}></div>
+            {/* Menu slide */}
+            <nav className="fixed top-0 right-0 w-64 h-full bg-white shadow-lg z-50 animate-slide-in flex flex-col py-8 px-6 gap-3">
+              <Link
+                to="/"
+                onClick={() => setIsMenuOpen(false)}
+                className={`font-medium py-2 transition-colors ${isActive('/') ? 'text-blue-600' : 'text-gray-700 hover:text-blue-600'}`}
+              >
                 Accueil
               </Link>
-              <Link to="/products" onClick={() => setIsMenuOpen(false)} className="text-gray-700 hover:text-blue-600 font-medium py-2">
+              <Link
+                to="/products"
+                onClick={() => setIsMenuOpen(false)}
+                className={`font-medium py-2 transition-colors ${isActive('/products') ? 'text-blue-600' : 'text-gray-700 hover:text-blue-600'}`}
+              >
                 Produits
               </Link>
-              <Link to="/categories" onClick={() => setIsMenuOpen(false)} className="text-gray-700 hover:text-blue-600 font-medium py-2">
+              <Link
+                to="/categories"
+                onClick={() => setIsMenuOpen(false)}
+                className={`font-medium py-2 transition-colors ${isActive('/categories') ? 'text-blue-600' : 'text-gray-700 hover:text-blue-600'}`}
+              >
                 Catégories
               </Link>
-              <Link to="/contact" onClick={() => setIsMenuOpen(false)} className="text-gray-700 hover:text-blue-600 font-medium py-2">
+              {isAuthenticated && (
+                <Link
+                  to="/myorders"
+                  onClick={() => setIsMenuOpen(false)}
+                  className={`font-medium py-2 transition-colors ${isActive('/myorders') ? 'text-blue-600' : 'text-gray-700 hover:text-blue-600'}`}
+                >
+                  Commandes
+                </Link>
+              )}
+              <Link
+                to="/contact"
+                onClick={() => setIsMenuOpen(false)}
+                className={`font-medium py-2 transition-colors ${isActive('/contact') ? 'text-blue-600' : 'text-gray-700 hover:text-blue-600'}`}
+              >
                 Contact
               </Link>
-            </div>
-          </nav>
+            </nav>
+          </>
         )}
       </div>
     </header>

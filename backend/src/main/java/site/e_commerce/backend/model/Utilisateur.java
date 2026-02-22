@@ -49,6 +49,7 @@ public class Utilisateur {
     private List<Commande> commandes;
     
     @OneToOne(mappedBy = "utilisateur", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private Panier panier;
     
     // Getters

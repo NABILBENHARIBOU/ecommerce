@@ -36,41 +36,24 @@ export default function LoginForm() {
     setLoading(true)
 
     try {
-      const user = await api.getUserByEmail(email)
-      if (!user) throw new Error('Utilisateur introuvable')
+      // Appel du nouvel endpoint d'authentification
+      const response = await api.loginUser(email, password)
+      const { user, token } = response
+      if (!user || !token) throw new Error('Email ou mot de passe incorrect')
 
-      // direct password comparison (backend currently stores motDePasse)
-      if (!user.motDePasse || user.motDePasse !== password) {
-        throw new Error('Email ou mot de passe incorrect')
-      }
+      login(user, token)
 
-      // login (no token for now)
-      login(user, null)
-      
-      console.log('Login successful, user:', user)
-      console.log('LocalStorage after login:', localStorage.getItem('user'))
-      
       // Attendre un instant pour s'assurer que localStorage est bien sauvegardé
       setTimeout(() => {
-        // Rediriger selon le rôle de l'utilisateur
-        // Essayer d'abord idType directement, sinon extraire de typeUtilisateur
         let userType = null
-        
         if (user.idType) {
           userType = parseInt(user.idType, 10)
         } else if (user.typeUtilisateur && user.typeUtilisateur.id_type) {
           userType = parseInt(user.typeUtilisateur.id_type, 10)
         }
-        
-        console.log('Parsed userType:', userType)
-        
         if (userType === 2) {
-          // Admin
-          console.log('Redirecting to admin...')
           navigate('/admin/')
         } else {
-          // Client
-          console.log('Redirecting to home...')
           navigate('/')
         }
       }, 100)

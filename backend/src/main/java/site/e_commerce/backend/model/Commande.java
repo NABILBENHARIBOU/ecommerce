@@ -8,6 +8,20 @@ import java.util.List;
 @Entity
 @Table(name = "Commande")
 public class Commande {
+            // Permet la désérialisation JSON du champ idAdresse
+            public void setIdAdresse(Integer idAdresse) {
+                if (this.adresse == null) {
+                    this.adresse = new Adresse();
+                }
+                this.adresse.setIdAdresse(idAdresse);
+            }
+        // Permet la désérialisation JSON du champ idUtilisateur
+        public void setIdUtilisateur(Integer idUtilisateur) {
+            if (this.utilisateur == null) {
+                this.utilisateur = new Utilisateur();
+            }
+            this.utilisateur.setIdUtilisateur(idUtilisateur);
+        }
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -1,12 +1,12 @@
 package site.e_commerce.backend.controller;
 
-import site.e_commerce.backend.dto.CommandeDTO;
-import site.e_commerce.backend.dto.CreateCommandeDTO;
-import site.e_commerce.backend.model.Commande;
-import site.e_commerce.backend.service.CommandeService;
+import site.e_commerce.backend.dto.*;
+import site.e_commerce.backend.model.*;
+import site.e_commerce.backend.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -18,140 +18,105 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/commandes")
 public class CommandeController {
-    
+
     @Autowired
     private CommandeService commandeService;
-    
-    // CREATE - POST (ancienne méthode)
+
+    @Autowired
+    private PaiementService paiementService;
+
+    // CREATE - POST (ancienne méthode simple)
     @PostMapping
     public ResponseEntity<Commande> creerCommande(@RequestBody Commande commande) {
         Commande nouvelleCommande = commandeService.creerCommande(commande);
         return ResponseEntity.status(HttpStatus.CREATED).body(nouvelleCommande);
     }
-    
-    // CREATE - POST (nouvelle méthode avec DTO depuis panier)
+
+    // CREATE - POST (Nouvelle méthode avec DTO depuis panier)
     @PostMapping("/creer")
-    public ResponseEntity<CommandeDTO> creerCommandeDepuisParnier(@RequestBody CreateCommandeDTO createCommandeDTO) {
+    public ResponseEntity<CommandeDTO> creerCommandeDepuisPanier(@RequestBody CreateCommandeDTO createCommandeDTO) {
         try {
             System.out.println("\n========== CRÉER COMMANDE DEPUIS PANIER ==========");
-            System.out.println("📋 Données reçues:");
-            System.out.println("  👤 ID Utilisateur: " + createCommandeDTO.getIdUtilisateur());
-            System.out.println("  📍 ID Adresse: " + createCommandeDTO.getIdAdresse());
-            System.out.println("  💰 Total: " + createCommandeDTO.getTotal());
-            System.out.println("  🛒 Nombre d'articles: " + (createCommandeDTO.getLignesCommande() != null ? createCommandeDTO.getLignesCommande().size() : 0));
-            if (createCommandeDTO.getLignesCommande() != null) {
-                createCommandeDTO.getLignesCommande().forEach(ligne ->
-                    System.out.println("    - Produit " + ligne.getIdProduit() + ": " + ligne.getQuantite() + "x @ " + ligne.getPrixUnitaire() + "€")
-                );
-            }
+            System.out.println("👤 ID Utilisateur: " + createCommandeDTO.getIdUtilisateur());
             
             Commande nouvelleCommande = commandeService.creerCommande(createCommandeDTO);
-            System.out.println("✅ Commande créée avec ID: " + nouvelleCommande.getIdCommande());
-            
             CommandeDTO commandeDTO = commandeService.convertToDTO(nouvelleCommande);
-            System.out.println("✓ Conversion en DTO effectuée");
-            System.out.println("================================================\n");
             
+            System.out.println("✅ Commande créée avec ID: " + nouvelleCommande.getIdCommande());
             return ResponseEntity.status(HttpStatus.CREATED).body(commandeDTO);
         } catch (RuntimeException e) {
-            System.out.println("❌ Erreur lors de la création de la commande: " + e.getMessage());
-            e.printStackTrace();
+            System.err.println("❌ Erreur: " + e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }
-    
+
+    // CRÉER UN PAIEMENT POUR UNE COMMANDE
+    @PostMapping("/{id}/paiement")
+    public ResponseEntity<?> creerPaiementPourCommande(
+            @PathVariable Integer id,
+            @RequestBody Map<String, Object> payload) {
+        try {
+            Integer idModePaiement = null;
+            if (payload.containsKey("idModePaiement")) {
+                idModePaiement = (Integer) payload.get("idModePaiement");
+            } else if (payload.containsKey("id_mode")) {
+                idModePaiement = (Integer) payload.get("id_mode");
+            }
+
+            if (idModePaiement == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "idModePaiement manquant"));
+            }
+
+            Paiement paiement = paiementService.creerPaiement(id, idModePaiement);
+            PaiementDTO paiementDTO = paiementService.convertToDTO(paiement);
+            return ResponseEntity.status(HttpStatus.CREATED).body(paiementDTO);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
+        }
+    }
+
     // READ - GET ALL
     @GetMapping
     public ResponseEntity<List<CommandeDTO>> obtenirToutesLesCommandes() {
-        List<Commande> commandes = commandeService.obtenirToutesLesCommandes();
-        List<CommandeDTO> commandeDTOs = commandes.stream()
+        List<CommandeDTO> dtos = commandeService.obtenirToutesLesCommandes().stream()
                 .map(commandeService::convertToDTO)
                 .collect(Collectors.toList());
-        return ResponseEntity.ok(commandeDTOs);
+        return ResponseEntity.ok(dtos);
     }
-    
+
     // READ - GET BY ID
     @GetMapping("/{id}")
     public ResponseEntity<CommandeDTO> obtenirCommandeParId(@PathVariable Integer id) {
-        Optional<Commande> commande = commandeService.obtenirCommandeParId(id);
-        
-        if (commande.isPresent()) {
-            CommandeDTO commandeDTO = commandeService.convertToDTO(commande.get());
-            return ResponseEntity.ok(commandeDTO);
-        }
-        
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        return commandeService.obtenirCommandeParId(id)
+                .map(c -> ResponseEntity.ok(commandeService.convertToDTO(c)))
+                .orElse(ResponseEntity.notFound().build());
     }
-    
+
     // READ - GET BY UTILISATEUR
     @GetMapping("/utilisateur/{idUtilisateur}")
     public ResponseEntity<List<CommandeDTO>> obtenirCommandesParUtilisateur(@PathVariable Integer idUtilisateur) {
-        List<Commande> commandes = commandeService.obtenirCommandesParUtilisateur(idUtilisateur);
-        List<CommandeDTO> commandeDTOs = commandes.stream()
+        List<CommandeDTO> dtos = commandeService.obtenirCommandesParUtilisateur(idUtilisateur).stream()
                 .map(commandeService::convertToDTO)
                 .collect(Collectors.toList());
-        return ResponseEntity.ok(commandeDTOs);
+        return ResponseEntity.ok(dtos);
     }
-    
-    // READ - GET BY UTILISATEUR ET STATUT
-    @GetMapping("/utilisateur/{idUtilisateur}/statut/{idStatut}")
-    public ResponseEntity<List<CommandeDTO>> obtenirCommandesParUtilisateurEtStatut(
-            @PathVariable Integer idUtilisateur,
-            @PathVariable Integer idStatut) {
-        List<Commande> commandes = commandeService.obtenirCommandesParUtilisateurEtStatut(idUtilisateur, idStatut);
-        List<CommandeDTO> commandeDTOs = commandes.stream()
-                .map(commandeService::convertToDTO)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(commandeDTOs);
-    }
-    
-    // READ - GET BY STATUT (Admin)
-    @GetMapping("/statut/{idStatut}")
-    public ResponseEntity<List<CommandeDTO>> obtenirCommandesParStatut(@PathVariable Integer idStatut) {
-        List<Commande> commandes = commandeService.obtenirCommandesParStatut(idStatut);
-        List<CommandeDTO> commandeDTOs = commandes.stream()
-                .map(commandeService::convertToDTO)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(commandeDTOs);
-    }
-    
-    // UPDATE - PUT (mise à jour globale)
-    @PutMapping("/{id}")
-    public ResponseEntity<CommandeDTO> mettreAJourCommande(@PathVariable Integer id, @RequestBody Commande commande) {
-        Commande commandeMisAJour = commandeService.mettreAJourCommande(id, commande);
-        
-        if (commandeMisAJour != null) {
-            CommandeDTO commandeDTO = commandeService.convertToDTO(commandeMisAJour);
-            return ResponseEntity.ok(commandeDTO);
-        }
-        
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-    }
-    
-    // UPDATE - PUT (mise à jour du statut)
+
+    // UPDATE - MISE À JOUR DU STATUT
     @PutMapping("/{id}/statut/{idStatut}")
     public ResponseEntity<CommandeDTO> mettreAJourStatut(@PathVariable Integer id, @PathVariable Integer idStatut) {
         try {
-            Commande commandeMisAJour = commandeService.mettreAJourStatut(id, idStatut);
-            CommandeDTO commandeDTO = commandeService.convertToDTO(commandeMisAJour);
-            return ResponseEntity.ok(commandeDTO);
+            Commande miseAJour = commandeService.mettreAJourStatut(id, idStatut);
+            return ResponseEntity.ok(commandeService.convertToDTO(miseAJour));
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }
-    
-    // DELETE - DELETE
+
+    // DELETE
     @DeleteMapping("/{id}")
-    public ResponseEntity<Map<String, String>> supprimerCommande(@PathVariable Integer id) {
-        boolean supprime = commandeService.supprimerCommande(id);
-        
-        Map<String, String> response = new HashMap<>();
-        if (supprime) {
-            response.put("message", "Commande supprimée avec succès");
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-        }
-        
-        response.put("message", "Commande non trouvée");
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    public ResponseEntity<Void> supprimerCommande(@PathVariable Integer id) {
+        return commandeService.supprimerCommande(id) 
+               ? ResponseEntity.noContent().build() 
+               : ResponseEntity.notFound().build();
     }
 }

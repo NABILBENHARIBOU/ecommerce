@@ -7,7 +7,7 @@ import { useCart } from '../store/CartContext';
 export default function Panier() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { items, removeFromCart, updateQuantity, clearCart, getTotalPrice } = useCart();
+  const { items, removeFromCart, updateQuantity, clearCart } = useCart();
 
   if (!items) return null;
 
@@ -36,6 +36,9 @@ export default function Panier() {
     );
   }
 
+  // Calcul du montant total
+  const total = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
   return (
     <div className="max-w-4xl mx-auto p-4">
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
@@ -53,7 +56,7 @@ export default function Panier() {
         {/* Liste des produits */}
         <div className="divide-y divide-gray-200">
           {items.map((item) => (
-            <div key={item.id} className="p-6 flex gap-4">
+            <div key={item.idProduit} className="p-6 flex gap-4">
               <img
                 src={item.image_url || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="150" height="150"%3E%3Crect fill="%23f0f0f0" width="150" height="150"/%3E%3Ctext x="50%25" y="50%25" font-family="Arial" font-size="14" fill="%23999" text-anchor="middle" dy=".3em"%3ENo Image%3C/text%3E%3C/svg%3E'}
                 alt={item.name}
@@ -64,11 +67,10 @@ export default function Panier() {
                 <h3 className="text-lg font-semibold text-gray-900 mb-1">
                   {item.name}
                 </h3>
-                
                 <div className="flex items-center gap-4 mt-4">
                   <div className="flex items-center gap-2 bg-gray-100 rounded-lg">
                     <button
-                      onClick={() => updateQuantity?.(item.id, item.quantity - 1)}
+                      onClick={() => updateQuantity?.(item.idProduit, item.quantity - 1)}
                       disabled={item.quantity <= 1}
                       className="p-2 hover:bg-gray-200 disabled:opacity-50 rounded-lg"
                     >
@@ -76,7 +78,7 @@ export default function Panier() {
                     </button>
                     <span className="w-12 text-center font-semibold">{item.quantity}</span>
                     <button
-                      onClick={() => updateQuantity?.(item.id, item.quantity + 1)}
+                      onClick={() => updateQuantity?.(item.idProduit, item.quantity + 1)}
                       className="p-2 hover:bg-gray-200 rounded-lg"
                     >
                       <Plus size={16} />
@@ -84,7 +86,7 @@ export default function Panier() {
                   </div>
 
                   <button
-                    onClick={() => removeFromCart(item.id)}
+                    onClick={() => removeFromCart(item.idProduit)}
                     className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
                   >
                     <Trash2 size={18} />
@@ -107,8 +109,7 @@ export default function Panier() {
           <div className="flex justify-between items-center mb-4">
             <span className="text-lg font-semibold text-gray-900">Total</span>
             <span className="text-3xl font-bold text-gray-900">
-              {/* Utilisation sécurisée de getTotalPrice ou calcul manuel */}
-              {getTotalPrice ? getTotalPrice().toFixed(2) : 0} F CFA
+              {total.toFixed(2)} F CFA
             </span>
           </div>
 

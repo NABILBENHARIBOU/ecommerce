@@ -1,7 +1,9 @@
 package site.e_commerce.backend.service;
 
 import site.e_commerce.backend.model.Utilisateur;
+import site.e_commerce.backend.model.Panier;
 import site.e_commerce.backend.repository.UtilisateurRepository;
+import site.e_commerce.backend.repository.PanierRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -10,13 +12,18 @@ import java.util.Optional;
 
 @Service
 public class UtilisateurService {
-    
     @Autowired
     private UtilisateurRepository utilisateurRepository;
+    @Autowired
+    private PanierRepository panierRepository;
     
     // CREATE
     public Utilisateur creerUtilisateur(Utilisateur utilisateur) {
-        return utilisateurRepository.save(utilisateur);
+        Utilisateur nouvelUtilisateur = utilisateurRepository.save(utilisateur);
+        // Créer un panier pour ce nouvel utilisateur
+        Panier panier = new Panier(nouvelUtilisateur);
+        panierRepository.save(panier);
+        return nouvelUtilisateur;
     }
     
     // READ

@@ -6,6 +6,13 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 @Entity
 @Table(name = "Adresse")
 public class Adresse {
+    // Permet la désérialisation JSON du champ idUtilisateur
+    public void setIdUtilisateur(Integer idUtilisateur) {
+        if (this.utilisateur == null) {
+            this.utilisateur = new Utilisateur();
+        }
+        this.utilisateur.setIdUtilisateur(idUtilisateur);
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

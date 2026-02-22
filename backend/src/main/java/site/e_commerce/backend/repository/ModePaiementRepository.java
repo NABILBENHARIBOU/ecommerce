@@ -12,6 +12,6 @@ import java.util.Optional;
 public interface ModePaiementRepository extends JpaRepository<ModePaiement, Integer> {
     Optional<ModePaiement> findByLibelle(String libelle);
     
-    @Query(value = "SELECT * FROM ModePaiement", nativeQuery = true)
+    @Query(value = "SELECT * FROM mode_paiement", nativeQuery = true)
     List<ModePaiement> findAllModePaiement();
 }

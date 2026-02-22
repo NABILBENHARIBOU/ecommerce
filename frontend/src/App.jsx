@@ -1,3 +1,4 @@
+import AdminModesPaiementPage from './pages/admin/AdminModesPaiementPage';
 import { Routes, Route, Outlet } from 'react-router-dom'
 import Header from './components/Header'
 import AdminHeader from './pages/admin/AdminHeader'
@@ -73,6 +74,11 @@ function App() {
                 <MyOrders />
               </ClientOrAdminRoute>
             } />
+            <Route path="/myorders" element={
+              <ClientOrAdminRoute>
+                <MyOrders />
+              </ClientOrAdminRoute>
+            } />
             <Route path="/order-confirmation/:orderId" element={
               <ClientOrAdminRoute>
                 <OrderConfirmation />
@@ -111,6 +117,7 @@ function App() {
             <Route path="/admin/stats" element={<Statistics />} />
             <Route path="/admin/orders" element={<OrdersManagement />} />
             <Route path="/admin/settings" element={<Settings />} />
+            <Route path="/admin/modes-paiement" element={<AdminModesPaiementPage />} />
           </Route>
 
         </Routes>
